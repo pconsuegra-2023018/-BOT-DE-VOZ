@@ -22,9 +22,20 @@ router.post('/knowledge-base',
 router.get('/knowledge-bases', 
   DocumentController.listKnowledgeBases
 );
+
+// Obtener detalles de una KB (sources, límite de docs)
+router.get('/knowledge-base/:id', 
+  DocumentController.getKnowledgeBaseDetails
+);
+
 // Eliminar KB
 router.delete('/knowledge-base/:id',
   DocumentController.deleteKnowledgeBase
+);
+
+// Eliminar un source específico de una KB
+router.delete('/knowledge-base/:knowledgeBaseId/source/:sourceId',
+  DocumentController.deleteSource
 );
 
 export default router;

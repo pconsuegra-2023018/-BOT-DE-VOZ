@@ -1,10 +1,18 @@
 import retellClient from '../src/client/client.js';
 import fs from 'fs';
 
+const MAX_DOCS_PER_KB = 10;
+
 class KnowledgeService {
   // Crear nueva KB
   async createKnowledgeBase(name, urls = [], texts = [], files = []) {
   try {
+    // Validar límite de 10 documentos (sources) al crear
+    const totalSources = (urls?.length || 0) + (texts?.length || 0) + (files?.length || 0);
+    if (totalSources > MAX_DOCS_PER_KB) {
+      throw new Error(`Límite excedido: máximo ${MAX_DOCS_PER_KB} documentos por colección. Intentaste agregar ${totalSources}.`);
+    }
+
     const payload = {
       knowledge_base_name: name
     };
@@ -54,6 +62,19 @@ class KnowledgeService {
 
   async addSourcesToKB(knowledgeBaseId, urls = [], texts = [], files = []) {
   try {
+    // Validar límite de 10 documentos antes de agregar
+    const currentKB = await retellClient.knowledgeBase.retrieve(knowledgeBaseId);
+    const currentCount = currentKB.knowledge_base_sources?.length || 0;
+    const newCount = (urls?.length || 0) + (texts?.length || 0) + (files?.length || 0);
+    
+    if (currentCount + newCount > MAX_DOCS_PER_KB) {
+      throw new Error(
+        `Límite excedido: la colección ya tiene ${currentCount} documentos. ` +
+        `Intentas agregar ${newCount}, pero el máximo es ${MAX_DOCS_PER_KB}. ` +
+        `Espacio disponible: ${MAX_DOCS_PER_KB - currentCount}.`
+      );
+    }
+
     const payload = {};
 
     if (urls.length > 0) payload.knowledge_base_urls = urls;
@@ -116,6 +137,49 @@ class KnowledgeService {
     console.error('❌ Error eliminando KB:', error);
     throw error;
   }
+  }
+
+  // Obtener detalles de una KB (con sources)
+  async getKBDetails(knowledgeBaseId) {
+    try {
+      const kb = await retellClient.knowledgeBase.retrieve(knowledgeBaseId);
+      return {
+        id: kb.knowledge_base_id,
+        name: kb.knowledge_base_name,
+        status: kb.status,
+        sourcesCount: kb.knowledge_base_sources?.length || 0,
+        maxSources: MAX_DOCS_PER_KB,
+        availableSlots: MAX_DOCS_PER_KB - (kb.knowledge_base_sources?.length || 0),
+        sources: kb.knowledge_base_sources?.map(source => ({
+          sourceId: source.source_id,
+          type: source.type,
+          ...(source.type === 'document' && { filename: source.filename, fileUrl: source.file_url }),
+          ...(source.type === 'text' && { title: source.title, contentUrl: source.content_url }),
+          ...(source.type === 'url' && { url: source.url }),
+        })) || []
+      };
+    } catch (error) {
+      console.error('❌ Error obteniendo detalles de KB:', error);
+      throw error;
+    }
+  }
+
+  // Eliminar un source específico de una KB
+  async deleteSourceFromKB(knowledgeBaseId, sourceId) {
+    try {
+      const updatedKB = await retellClient.knowledgeBase.deleteSource(
+        sourceId,
+        { knowledge_base_id: knowledgeBaseId }
+      );
+      return {
+        id: updatedKB.knowledge_base_id,
+        name: updatedKB.knowledge_base_name,
+        remainingSources: updatedKB.knowledge_base_sources?.length || 0
+      };
+    } catch (error) {
+      console.error('❌ Error eliminando source de KB:', error);
+      throw error;
+    }
   }
 
 }

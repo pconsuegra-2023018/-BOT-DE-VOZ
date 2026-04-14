@@ -44,9 +44,11 @@ export const initServer = () => {
             console.log('📚 Endpoints disponibles:');
             console.log(`   GET  /api/documents/health - Verificar conexión`);
             console.log(`   GET  /api/documents/knowledge-bases - Listar KBs`);
-            console.log(`   POST /api/documents/knowledge-base - Crear nueva KB`);
+            console.log(`   GET  /api/documents/knowledge-base/:id - Detalles de KB (sources, límite)`);
+            console.log(`   POST /api/documents/knowledge-base - Crear nueva KB (máx 10 docs)`);
             console.log(`   POST /api/documents/upload-multiple - Añadir contenido a KB existente`);
-            console.log(`   DELETE /api/documents/knowledge-base/ - Eliminar KB`);
+            console.log(`   DELETE /api/documents/knowledge-base/:id - Eliminar KB`);
+            console.log(`   DELETE /api/documents/knowledge-base/:kbId/source/:sourceId - Eliminar doc específico`);
             console.log('════════════════════════════════════════');
         });
     } catch (error) {

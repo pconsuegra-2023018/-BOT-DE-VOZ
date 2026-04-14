@@ -257,6 +257,55 @@ class DocumentController {
     }
   }
 
+  // Obtener detalles de una KB (sources, límite, etc.)
+  async getKnowledgeBaseDetails(req, res) {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          error: 'El id de la Knowledge Base es requerido'
+        });
+      }
+      const details = await knowledgeService.getKBDetails(id);
+      res.json({
+        success: true,
+        knowledgeBase: details
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Error al obtener detalles de la Knowledge Base',
+        details: error.message
+      });
+    }
+  }
+
+  // Eliminar un source específico de una KB
+  async deleteSource(req, res) {
+    try {
+      const { knowledgeBaseId, sourceId } = req.params;
+      if (!knowledgeBaseId || !sourceId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Se requieren knowledgeBaseId y sourceId'
+        });
+      }
+      const result = await knowledgeService.deleteSourceFromKB(knowledgeBaseId, sourceId);
+      res.json({
+        success: true,
+        message: 'Documento eliminado exitosamente de la colección',
+        knowledgeBase: result
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Error al eliminar el documento de la colección',
+        details: error.message
+      });
+    }
+  }
+
 }
 
 export default new DocumentController();
