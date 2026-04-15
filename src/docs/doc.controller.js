@@ -139,12 +139,14 @@ class DocumentController {
         error: 'Debe proporcionar al menos una URL, texto o archivo'
       });
     }
+   
 
     console.log('📦 Datos procesados:');
     console.log('  - name:', name);
     console.log('  - urls:', urls);
     console.log('  - texts:', texts.length, 'textos');
     console.log('  - files:', files.length, 'archivos');
+   
 
     // 6. Crear KB
     const kb = await knowledgeService.createKnowledgeBase(
@@ -156,11 +158,36 @@ class DocumentController {
 
     // 7. Asociar a agente si existe
     const agentId = process.env.AGENT_ID;
-    if (agentId) {
-      await knowledgeService.attachKBToAgent(agentId, [kb.id]);
-      kb.attachedToAgent = agentId;
-    }
+    // Después de crear la KB
+console.log('🔑 AGENT_ID:', agentId);
+console.log('📦 KB creada:', kb.id);
 
+if (agentId) {
+  try {
+    // 1. Obtener agente actual
+    const agent = await knowledgeService.getAgent(agentId);
+    console.log('📋 Agente actual:', JSON.stringify(agent, null, 2));
+    
+    // 2. Ver las KBs actuales
+    const existingKBIds = agent.knowledgeBaseIds || [];
+    console.log('📚 KBs existentes:', existingKBIds);
+    
+    // 3. Crear nuevo array
+    const updatedKBIds = [...existingKBIds, kb.id];
+    console.log('🔄 Nuevos IDs a enviar:', updatedKBIds);
+    
+    // 4. Actualizar
+    const updatedAgent = await knowledgeService.updateAgentKnowledgeBases(
+      agentId, 
+      updatedKBIds
+    );
+    console.log('✅ Agente actualizado:', JSON.stringify(updatedAgent, null, 2));
+    
+  } catch (agentError) {
+    console.error('❌ Error específico:', agentError.message);
+    console.error('❌ Stack:', agentError.stack);
+  }
+}
     // 8. Limpiar archivos temporales
     files.forEach(f => {
       if (fs.existsSync(f.path)) fs.unlinkSync(f.path);

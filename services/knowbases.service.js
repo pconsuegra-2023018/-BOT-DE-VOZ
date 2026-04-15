@@ -118,6 +118,39 @@ class KnowledgeService {
   }
   }
 
+  // Obtener información de un agente
+async getAgent(agentId) {
+  try {
+    const agent = await retellClient.agent.retrieve(agentId);
+    return {
+      id: agent.agent_id,
+      name: agent.agent_name,
+      knowledgeBaseIds: agent.knowledge_base_ids || []
+    };
+  } catch (error) {
+    console.error('❌ Error obteniendo agente:', error);
+    throw error;
+  }
+}
+
+// Actualizar las KBs de un agente (reemplaza todas)
+async updateAgentKnowledgeBases(agentId, knowledgeBaseIds) {
+  try {
+    const updatedAgent = await retellClient.agent.update(agentId, {
+      knowledge_base_ids: knowledgeBaseIds
+    });
+    
+    return {
+      id: updatedAgent.agent_id,
+      name: updatedAgent.agent_name,
+      knowledgeBaseIds: updatedAgent.knowledge_base_ids
+    };
+  } catch (error) {
+    console.error('❌ Error actualizando agente:', error);
+    throw error;
+  }
+}
+
 }
 
 
