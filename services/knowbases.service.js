@@ -112,20 +112,43 @@ class KnowledgeService {
     }
   }
 
-  // Asociar KB a un agente
-  async attachKBToAgent(agentId, knowledgeBaseIds) {
+  // Obtener el LLM del agente para ver sus KBs actuales
+  async getLLMFromAgent(agentId) {
     try {
-      const updatedAgent = await retellClient.agent.update(agentId, {
-        knowledge_base_ids: knowledgeBaseIds
-      });
-      
+      const agent = await retellClient.agent.retrieve(agentId);
+      const llmId = agent.response_engine?.llm_id;
+      if (!llmId) {
+        throw new Error('El agente no tiene un LLM configurado');
+      }
+      const llm = await retellClient.llm.retrieve(llmId);
+      console.log('🤖 Agente:', agent.agent_name);
+      console.log('🧠 LLM:', llmId);
+      console.log('📚 KBs actuales:', llm.knowledge_base_ids || []);
       return {
-        id: updatedAgent.agent_id,
-        name: updatedAgent.agent_name,
-        knowledgeBases: updatedAgent.knowledge_base_ids
+        agentId: agent.agent_id,
+        agentName: agent.agent_name,
+        llmId: llmId,
+        knowledgeBaseIds: llm.knowledge_base_ids || []
       };
     } catch (error) {
-      console.error('❌ Error asociando KB al agente:', error);
+      console.error('❌ Error obteniendo LLM del agente:', error);
+      throw error;
+    }
+  }
+
+  // Asignar KBs al LLM del agente
+  async attachKBToLLM(llmId, knowledgeBaseIds) {
+    try {
+      const updatedLLM = await retellClient.llm.update(llmId, {
+        knowledge_base_ids: knowledgeBaseIds
+      });
+      console.log('✅ LLM actualizado con KBs:', knowledgeBaseIds);
+      return {
+        llmId: updatedLLM.llm_id,
+        knowledgeBases: updatedLLM.knowledge_base_ids
+      };
+    } catch (error) {
+      console.error('❌ Error asignando KBs al LLM:', error);
       throw error;
     }
   }

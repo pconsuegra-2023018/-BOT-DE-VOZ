@@ -154,11 +154,27 @@ class DocumentController {
       files
     );
 
-    // 7. Asociar a agente si existe
+    // 7. Asociar KB al LLM del agente (sumando a las KBs existentes)
     const agentId = process.env.AGENT_ID;
+    console.log(`🔑 AGENT_ID desde .env: "${agentId}"`);
     if (agentId) {
-      await knowledgeService.attachKBToAgent(agentId, [kb.id]);
-      kb.attachedToAgent = agentId;
+      try {
+        const agentInfo = await knowledgeService.getLLMFromAgent(agentId);
+        const existingKBIds = agentInfo.knowledgeBaseIds || [];
+        const updatedKBIds = [...existingKBIds, kb.id];
+        
+        console.log(`🔗 Asignando KB ${kb.id} al LLM ${agentInfo.llmId}`);
+        console.log(`   KBs anteriores: [${existingKBIds.join(', ')}]`);
+        console.log(`   KBs actualizadas: [${updatedKBIds.join(', ')}]`);
+        
+        await knowledgeService.attachKBToLLM(agentInfo.llmId, updatedKBIds);
+        kb.attachedToAgent = agentId;
+        console.log(`✅ KB asignada correctamente al LLM`);
+      } catch (assignError) {
+        console.error('⚠️ Error asignando KB al agente (la KB se creó igual):', assignError.message);
+      }
+    } else {
+      console.log('⚠️ No hay AGENT_ID configurado, KB creada sin asignar a agente');
     }
 
     // 8. Limpiar archivos temporales
