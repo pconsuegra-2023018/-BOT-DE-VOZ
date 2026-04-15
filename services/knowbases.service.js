@@ -97,17 +97,36 @@ class KnowledgeService {
     throw error;
   }
 }
-  // Listar todas las KBs
+  // Listar solo las KBs asignadas al agente configurado en .env
   async listKnowledgeBases() {
     try {
-      const knowledgeBases = await retellClient.knowledgeBase.list();
-      return knowledgeBases.map(kb => ({
+      const agentId = process.env.AGENT_ID;
+      if (!agentId) {
+        throw new Error('No hay AGENT_ID configurado en .env');
+      }
+
+      // Obtener los IDs de KBs asignadas al LLM del agente
+      const agentInfo = await this.getLLMFromAgent(agentId);
+      const assignedIds = agentInfo.knowledgeBaseIds || [];
+
+      if (assignedIds.length === 0) {
+        return [];
+      }
+
+      // Obtener detalles de cada KB asignada
+      const kbDetails = await Promise.all(
+        assignedIds.map(id => retellClient.knowledgeBase.retrieve(id))
+      );
+
+      return kbDetails.map(kb => ({
         id: kb.knowledge_base_id,
         name: kb.knowledge_base_name,
+        status: kb.status,
+        sourcesCount: kb.knowledge_base_sources?.length || 0,
         created: kb.created_at
       }));
     } catch (error) {
-      console.error('❌ Error listando KBs:', error);
+      console.error('❌ Error listando KBs del agente:', error);
       throw error;
     }
   }

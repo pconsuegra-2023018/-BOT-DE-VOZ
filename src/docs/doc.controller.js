@@ -212,19 +212,20 @@ class DocumentController {
   }
 }
 
-  // Listar KBs
+  // Listar KBs asignadas al agente
   async listKnowledgeBases(req, res) {
     try {
       const kbs = await knowledgeService.listKnowledgeBases();
       res.json({
         success: true,
+        agentId: process.env.AGENT_ID,
         count: kbs.length,
         knowledgeBases: kbs
       });
     } catch (error) {
       res.status(500).json({ 
         success: false,
-        error: 'Error al listar bases de conocimiento',
+        error: 'Error al listar bases de conocimiento del agente',
         details: error.message 
       });
     }
