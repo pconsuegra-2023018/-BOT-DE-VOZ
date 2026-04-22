@@ -1,4 +1,5 @@
 import express from 'express';
+import multer from 'multer';
 import documentRoutes from '../src/docs/doc.routes.js';
 import dotenv from 'dotenv';
 
@@ -21,6 +22,22 @@ const routes = (app) => {
 
    // Manejo global de errores
    app.use((err, req, res, next) => {
+       // Errores específicos de Multer (subida de archivos)
+       if (err instanceof multer.MulterError) {
+           if (err.code === 'LIMIT_FILE_SIZE') {
+               return res.status(413).json({
+                   success: false,
+                   error: 'Archivo demasiado grande',
+                   details: 'El tamaño máximo permitido por archivo es de 10 MB.'
+               });
+           }
+           return res.status(400).json({
+               success: false,
+               error: 'Error al subir archivo',
+               details: err.message
+           });
+       }
+
        console.error('Error global:', err);
        res.status(500).json({ 
            success: false,
