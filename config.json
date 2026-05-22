@@ -1,0 +1,69 @@
+{
+  "completed": true,
+  "created_at": "2026-05-22T18:21:37.208Z",
+  "mode": "single",
+  "business_name": "JADMEX",
+  "business_type": "spa",
+  "city": "Ciudad de Guatemala",
+  "timezone": "America/Guatemala",
+  "phone": "32913102",
+  "schedule": {
+    "monday": {
+      "open": "08:00",
+      "close": "18:00"
+    },
+    "tuesday": {
+      "open": "08:00",
+      "close": "18:00"
+    },
+    "wednesday": {
+      "open": "08:00",
+      "close": "18:00"
+    },
+    "thursday": {
+      "open": "08:00",
+      "close": "18:00"
+    },
+    "friday": {
+      "open": "08:00",
+      "close": "17:00"
+    },
+    "saturday": null,
+    "sunday": null
+  },
+  "services": [
+    {
+      "name": "Atencion al cliente",
+      "price": "200",
+      "duration_min": "30"
+    }
+  ],
+  "has_products": true,
+  "products": [],
+  "uses_calendar": true,
+  "cal_com_api_key": "cal_live_571466f78a00caf8e7afc6364104694f",
+  "cal_event_type_id": 5781428,
+  "agent_name": "Mayra",
+  "agent_tone": "amigable",
+  "agent_language": "es",
+  "kbs": [
+    {
+      "name": "KB_JADMEX",
+      "id": "knowledge_base_5eb42e7a10e2d2c1",
+      "mode": "single",
+      "sections": [
+        "KB_identidad",
+        "KB_horarios",
+        "KB_servicios",
+        "KB_productos",
+        "KB_citas",
+        "KB_faq",
+        "KB_ubicacion",
+        "KB_instrucciones",
+        "KB_emergencias",
+        "KB_personalidad"
+      ]
+    }
+  ],
+  "cal_username": "jose-estrada-1yldro"
+}

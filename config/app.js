@@ -1,6 +1,8 @@
 import express from 'express';
 import multer from 'multer';
 import documentRoutes from '../src/docs/doc.routes.js';
+import onboardingRoutes from '../src/onboarding/onboarding.routes.js';
+import calRoutes from '../src/calendar/cal.routes.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -12,6 +14,8 @@ const configs = (app) => {
 
 const routes = (app) => {
    app.use('/api/documents', documentRoutes);
+   app.use('/api/onboarding', onboardingRoutes);
+   app.use('/api/v1/calendar', calRoutes);
    // Manejo de rutas no encontradas
    app.use((req, res) => {
        res.status(404).json({ 
@@ -66,6 +70,16 @@ export const initServer = () => {
             console.log(`   POST /api/documents/upload-multiple - Añadir contenido a KB existente`);
             console.log(`   DELETE /api/documents/knowledge-base/:id - Eliminar KB`);
             console.log(`   DELETE /api/documents/knowledge-base/:kbId/source/:sourceId - Eliminar doc específico`);
+            console.log('────────────────────────────────────────');
+            console.log('🧙 Onboarding:');
+            console.log(`   POST /api/onboarding/setup   - Crear las 10 KBs del wizard`);
+            console.log(`   GET  /api/onboarding/status  - ¿Onboarding completado?`);
+            console.log(`   GET  /api/onboarding/config  - Datos guardados del onboarding`);
+            console.log('────────────────────────────────────────');
+            console.log('📅 Calendario (Cal.com):');
+            console.log(`   POST /api/v1/calendar/availability - Consultar slots disponibles (Retell tool)`);
+            console.log(`   POST /api/v1/calendar/book         - Agendar una cita (Retell tool)`);
+            console.log(`   GET  /api/v1/calendar/event-types  - Listar event types (debug)`);
             console.log('════════════════════════════════════════');
         });
     } catch (error) {

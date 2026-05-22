@@ -157,25 +157,27 @@ class DocumentController {
     // 7. Asociar KB al LLM del agente (sumando a las KBs existentes)
     const agentId = process.env.AGENT_ID;
     console.log(`🔑 AGENT_ID desde .env: "${agentId}"`);
-    if (agentId) {
-      try {
-        const agentInfo = await knowledgeService.getLLMFromAgent(agentId);
-        const existingKBIds = agentInfo.knowledgeBaseIds || [];
-        const updatedKBIds = [...existingKBIds, kb.id];
-        
-        console.log(`🔗 Asignando KB ${kb.id} al LLM ${agentInfo.llmId}`);
-        console.log(`   KBs anteriores: [${existingKBIds.join(', ')}]`);
-        console.log(`   KBs actualizadas: [${updatedKBIds.join(', ')}]`);
-        
-        await knowledgeService.attachKBToLLM(agentInfo.llmId, updatedKBIds);
-        kb.attachedToAgent = agentId;
-        console.log(`✅ KB asignada correctamente al LLM`);
-      } catch (assignError) {
-        console.error('⚠️ Error asignando KB al agente (la KB se creó igual):', assignError.message);
-      }
-    } else {
-      console.log('⚠️ No hay AGENT_ID configurado, KB creada sin asignar a agente');
+
+    if (!agentId) {
+      // Eliminar la KB recién creada para no dejar basura
+      await knowledgeService.deleteKnowledgeBase(kb.id).catch(() => {});
+      return res.status(500).json({
+        success: false,
+        error: 'No hay AGENT_ID configurado en el .env. La KB no fue creada.'
+      });
     }
+
+    const agentInfo = await knowledgeService.getLLMFromAgent(agentId);
+    const existingKBIds = agentInfo.knowledgeBaseIds || [];
+    const updatedKBIds = [...existingKBIds, kb.id];
+
+    console.log(`🔗 Asignando KB ${kb.id} al LLM ${agentInfo.llmId}`);
+    console.log(`   KBs anteriores: [${existingKBIds.join(', ')}]`);
+    console.log(`   KBs actualizadas: [${updatedKBIds.join(', ')}]`);
+
+    await knowledgeService.attachKBToLLM(agentInfo.llmId, updatedKBIds);
+    kb.attachedToAgent = agentId;
+    console.log(`✅ KB asignada correctamente al LLM`);
 
     // 8. Limpiar archivos temporales
     files.forEach(f => {
@@ -202,6 +204,11 @@ class DocumentController {
       req.files.forEach(f => {
         if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
       });
+    }
+
+    // Si la KB ya fue creada pero la asignación al agente falló, eliminarla
+    if (error._kbId) {
+      await knowledgeService.deleteKnowledgeBase(error._kbId).catch(() => {});
     }
     
     res.status(500).json({ 
